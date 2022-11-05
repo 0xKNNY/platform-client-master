@@ -1,0 +1,808 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="css/typography-0.5.0.min.css" rel="stylesheet">
+    <link href="css/forms-0.4.0.min.css" rel="stylesheet">
+    <link href="css/tailwind-2.2.19.min.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+
+    <title>Cryptopunks Market</title>
+    <meta name="description" content="An open source interface into the zero fee Cryptopunks market smart contract deployed in 2017." />
+
+    <!-- Open Graph data -->
+    <meta property="og:title" content="Cryptopunks Market" />
+    <meta property="og:image" content="https://cryptopunks.market/img/share-image.png" />
+    <meta property="og:description" content="An open source interface into the zero fee Cryptopunks market smart contract deployed in 2017." />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Cryptopunks Market" />
+    <meta name="twitter:image" content="https://cryptopunks.market/img/share-image.png" />
+    <meta name="twitter:description" content="An open source interface into the zero fee Cryptopunks market smart contract deployed in 2017." />
+
+    <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="js/vue-2.6.14.js"></script>
+    <script src="js/web3-1.6.1.min.js"></script>
+    <script src="js/cryptopunks.js"></script>
+    <script src="js/page.js"></script>
+</head>
+<body>
+
+<div id="main_content" class="bg-white">
+    <!-- Terms Modal -->
+    <div v-show="dialogState.showTerms" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-6    00" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            Terms and Conditions
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">
+                                By connecting a wallet, you agree to the Cryptopunks Market <a href="terms.html" target="_blank" class="text-blue-600 hover:text-blue-500">Terms of Service</a> and acknowledge that you have read and understand the <a href="disclaimer.html" target="_blank" class="text-blue-600 hover:text-blue-500">Marketplace Disclaimer</a>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                    <button @click="agreedToTerms()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm">
+                        I Agree
+                    </button>
+                    <button @click="closeDialogs()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Account Balance Dialog -->
+    <div v-show="dialogState.showWithdrawAccountBalance" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                        <!-- Heroicon name: outline/check -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are Withdrawing Your Account Balance
+                        </h3>
+                        <div class="mt-10 text-left">
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div v-show="!transaction.completedSuccessfully" class="flex mt-3">
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="font-normal text-gray-500">You are withdrawing your account balance of </span> <value-display :amount-wei="state.accountBalanceInWei" :hide-usd="true"></value-display>
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Withdraw Balance" :button-disabled="transaction.inProgress" :transaction="transaction" @main-button-click="withdrawAccountBalance()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bid Modal -->
+    <div v-show="dialogState.showBid" id="modal-bid" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                        <!-- Heroicon name: outline/check -->
+                        <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are placing a new bid on Punk #{{ punkIndex }}
+                        </h3>
+                        <div class="mt-10 text-left">
+                            <form class="mt-5 space-y-6" action="#" method="POST">
+                                <div class="sm:col-span-4">
+                                    <label for="bidValueEther" class="block text-sm font-medium text-gray-700">
+                                        Amount of Your Bid in Ether
+                                    </label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                      Ξ
+                                    </span>
+                                        <input v-model="bidDialog.bidAmountEther" type="number" name="bidValueEther"
+                                               id="bidValueEther" placeholder="0"
+                                               class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                               data-cy="input-bid-value-ether">
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-4">
+                                    <label for="bidValueUSD" class="block text-sm font-medium text-gray-700">
+                                        Equivalent USD Value of Bid (Estimated)
+                                    </label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                      $
+                                    </span>
+                                        <input disabled v-model="bidAmountUsd" type="text" name="bidValueUSD" id="bidValueUSD" placeholder="0" class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300">
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="mt-10 mb-3 w-full border-t border-gray-300"></div>
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div class="flex mt-3">
+                                <div class="mr-4 flex-shrink-0 self-center">
+                                    <img :src=punkImageUrl alt="Cryptopunk image" class="w-16 h-16 object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="truncate font-normal text-gray-500">You are placing a new bid of</span>
+                                        <br>
+                                        <value-display :amount-ether="bidDialog.bidAmountEther"></value-display>
+                                        <br>
+                                        <span class="truncate font-normal text-gray-500">This bid is </span> <floor-percent-display :amount-ether="bidDialog.bidAmountEther"></floor-percent-display>
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Place Bid" :button-disabled="transaction.inProgress || bidDialog.bidAmountEther <= 0" :transaction="transaction" @main-button-click="enterBidForPunk()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Bid Dialog -->
+    <div v-show="dialogState.showWithdrawBid" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <!-- Heroicon name: outline/check -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are Withdrawing Your Bid for Punk #{{ punkIndex }}
+                        </h3>
+                        <div class="mt-10 text-left">
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div class="flex mt-3">
+                                <div class="mr-4 flex-shrink-0 self-center">
+                                    <img :src=punkImageUrl alt="Cryptopunk image" class="w-16 h-16 object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="font-normal text-gray-500">You are withdrawing your bid of</span> <value-display :amount-wei="state.punkData.bidValue"></value-display> <span class="font-normal text-gray-500">for</span> Punk #{{ punkIndex }}.
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Withdraw Bid" :button-disabled="transaction.inProgress" :transaction="transaction" @main-button-click="withdrawBidForPunk()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accept Bid Dialog -->
+    <div v-show="dialogState.showAcceptBid" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <!-- Heroicon name: outline/check -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are Accepting a Bid for Punk #{{ punkIndex }}
+                        </h3>
+                        <div class="mt-10 text-left">
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div class="flex mt-3">
+                                <div class="mr-4 flex-shrink-0 self-center">
+                                    <img :src=punkImageUrl alt="Cryptopunk image" class="w-16 h-16 object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="font-normal text-gray-500">You are accepting a bid of</span> <value-display :amount-wei="state.punkData.bidValue"></value-display> <span class="font-normal text-gray-500">for</span> Punk #{{ punkIndex }}.
+                                        <br>
+                                        <span class="truncate font-normal text-gray-500">This bid is </span> <floor-percent-display :amount-wei="state.punkData.bidValue"></floor-percent-display>
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Accept Bid" :button-disabled="transaction.inProgress" :transaction="transaction" @main-button-click="acceptBidForPunk()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offer For Sale Modal -->
+    <div v-show="dialogState.showOfferForSale" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <!-- Heroicon name: outline/check -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are offering Punk #{{ punkIndex }} for Sale
+                        </h3>
+                        <div class="mt-10 text-left">
+                            <form class="mt-5 space-y-6" action="#" method="POST">
+                                <div class="sm:col-span-4">
+                                    <label for="offerValueEther" class="block text-sm font-medium text-gray-700">
+                                        Amount You Are Offering for Sale in Ether
+                                    </label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                      Ξ
+                                    </span>
+                                        <input v-model="offerDialog.offerAmountEther" type="number" name="offerValueEther" id="offerValueEther" placeholder="0"
+                                               class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                               data-cy="input-offer-value-ether"
+                                        >
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-4">
+                                    <label for="bidValueUSD" class="block text-sm font-medium text-gray-700">
+                                        Equivalent USD Value of Sale Price (Estimated)
+                                    </label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                      $
+                                    </span>
+                                        <input disabled v-model="offerAmountUsd" type="text" placeholder="0" class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300">
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-4">
+                                    <label for="offerValueEther" class="block text-sm font-medium text-gray-700">
+                                        Only Allow Punk to Be Bought By Address
+                                    </label>
+                                    <div class="mt-1 sm:mt-0 sm:col-span-2">
+                                        <input v-model="offerDialog.onlyOfferToAddress" type="text"
+                                               name="onlyOfferToAddress" placeholder="0x1234..."
+                                               class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"
+                                               data-cy="input-offer-to-address"
+                                        >
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-4">
+                                    <label for="bidValueUSD" class="block text-sm font-medium text-gray-700">
+                                        Only Offer to Address Status
+                                    </label>
+                                    <div class="mt-1 sm:mt-0 sm:col-span-2">
+                                        <input disabled v-model="offerToAddressStatusMessage" type="text" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="mt-10 mb-3 w-full border-t border-gray-300"></div>
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div class="flex mt-3">
+                                <div class="mr-4 flex-shrink-0 self-center">
+                                    <img :src=punkImageUrl alt="Cryptopunk image" class="w-16 h-16 object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="truncate font-normal text-gray-500">You are offering</span> Cryptopunk #{{ punkIndex }} <span class="truncate font-normal text-gray-500">for sale for</span>
+                                        <value-display :amount-ether="offerDialog.offerAmountEther"></value-display>
+                                        <span v-show="!onlyOfferingToSpecificAddress">to any address</span><span v-show="onlyOfferingToSpecificAddress">only to <span class="truncate font-mono text-sm text-gray-500">{{ offerDialog.onlyOfferToAddress }}</span></span>.
+                                        <span class="truncate font-normal text-gray-500">This price is </span> <floor-percent-display :amount-ether="offerDialog.offerAmountEther"></floor-percent-display>
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Offer for Sale" :button-disabled="transaction.inProgress || offerDialog.offerAmountEther <= 0 || !offerToAddressIsValid" :transaction="transaction" @main-button-click="offerPunkForSale()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove from Sale Dialog -->
+    <div v-show="dialogState.showRemoveFromSale" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <!-- Heroicon name: outline/check -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are removing Punk #{{ punkIndex }} from Sale
+                        </h3>
+                        <div class="mt-10 text-left">
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div class="flex mt-3">
+                                <div class="mr-4 flex-shrink-0 self-center">
+                                    <img :src=punkImageUrl alt="Cryptopunk image" class="w-16 h-16 object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="truncate font-normal text-gray-500">You are removing Punk #{{ punkIndex }} from sale.</span>
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Remove from Sale" :button-disabled="transaction.inProgress" :transaction="transaction" @main-button-click="removePunkFromSale()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div v-show="dialogState.showTransfer" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                        <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are transferring Punk #{{ punkIndex }}
+                        </h3>
+                        <div class="mt-10 text-left">
+                            <form class="mt-5 space-y-6" action="#" method="POST">
+                                <div class="sm:col-span-4">
+                                    <label for="offerValueEther" class="block text-sm font-medium text-gray-700">
+                                        Address to Transfer Punk To
+                                    </label>
+                                    <div class="mt-1 sm:mt-0 sm:col-span-2">
+                                        <input v-model="transferDialog.transferToAddress" type="text" name="transferToAddress" placeholder="0x1234..." class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md" data-cy="input-transfer-to">
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-4">
+                                    <label for="bidValueUSD" class="block text-sm font-medium text-gray-700">
+                                        Address Status
+                                    </label>
+                                    <div class="mt-1 sm:mt-0 sm:col-span-2">
+                                        <input disabled v-model="transferToAddressStatusMessage" type="text" class="block max-w-lg w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md">
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="mt-10 mb-3 w-full border-t border-gray-300"></div>
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div class="flex mt-3">
+                                <div class="mr-4 flex-shrink-0 self-center">
+                                    <img :src=punkImageUrl alt="Cryptopunk image" class="w-16 h-16 object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="truncate font-normal text-gray-500">You are transferring Cryptopunk #{{ punkIndex }} to</span>
+                                        <br>
+                                        <span class="truncate font-mono text-sm text-gray-500">{{ transferDialog.transferToAddress }}</span>
+                                        <br>
+                                        <span class="text-base font-normal"><account-verification-links v-show="transferToAddressIsValid" :account="transferDialog.transferToAddress"></account-verification-links></span>
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Transfer" :button-disabled="transaction.inProgress || !transferToAddressIsValid" :transaction="transaction" @main-button-click="transferPunk()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Dialog -->
+    <div v-show="dialogState.showBuy" id="modal-buy" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" v-cloak>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                <div>
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <!-- Heroicon name: outline/check -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            You are buying Punk #{{ punkIndex }}
+                        </h3>
+                        <div class="mt-10 text-left">
+
+                            <dialog-confirmation-header></dialog-confirmation-header>
+
+                            <div class="flex mt-3">
+                                <div class="mr-4 flex-shrink-0 self-center">
+                                    <img :src=punkImageUrl alt="Cryptopunk image" class="w-16 h-16 object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold">
+                                        <span class="truncate font-normal text-gray-500">You are buying Punk #{{ punkIndex }} for</span>
+                                        <br>
+                                        <value-display :amount-wei="state.punkData.offerValue"></value-display>
+                                        <br>
+                                        <span class="truncate font-normal text-gray-500">This price is </span> <floor-percent-display :amount-wei="state.punkData.offerValue"></floor-percent-display>
+                                    </h4>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <dialog-buttons button-message="Buy Punk" :button-disabled="transaction.inProgress" :transaction="transaction" @main-button-click="buyPunk()" @cancel-button-click="closeDialogs()"></dialog-buttons>
+            </div>
+        </div>
+    </div>
+
+    <header class="relative bg-white">
+        <p v-show="!state.isTestnet" class="bg-blue-600 py-2 flex items-center justify-center text-sm font-medium text-white px-4 sm:px-6 lg:px-8">
+            This Cryptopunks market interface is an open source community product currently in BETA - Please confirm transaction values and use at your own risk
+        </p>
+        <p v-show="state.isTestnet" class="bg-yellow-400 py-2 flex items-center justify-center text-sm font-medium text-white px-4 sm:px-6 lg:px-8">
+            ** Currently Connected to TestNet **
+        </p>
+
+        <nav aria-label="Top" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="border-b border-gray-200">
+                <div class="h-16 flex items-center justify-between">
+<!--
+                    <div class="flex-1 flex items-center lg:hidden">
+                        &lt;!&ndash; Mobile menu toggle, controls the 'mobileMenuOpen' state. &ndash;&gt;
+                        <button type="button" class="-ml-2 bg-white p-2 rounded-md text-gray-400">
+                            <span class="sr-only">Open menu</span>
+                            &lt;!&ndash; Heroicon name: outline/menu &ndash;&gt;
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+
+                        <a href="#" class="ml-2 p-2 text-gray-400 hover:text-gray-500">
+                            <span class="sr-only">Search</span>
+                            &lt;!&ndash; Heroicon name: outline/search &ndash;&gt;
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </a>
+                    </div>
+-->
+
+                    <!-- Logo -->
+                    <a href="https://cryptopunks.market" class="flex" data-cy="logo">
+                        <span class="sr-only">Cryptopunks Market</span>
+                        <h1 class="text-xl font-extrabold tracking-tight text-gray-900">Cryptopunks Market<sup class="text-sm text-gray-500"> beta</sup></h1>
+                    </a>
+
+                    <div class="flex-1 flex items-center justify-end">
+                        <!-- Search -->
+<!--
+                        <a href="#" class="hidden ml-6 p-2 text-gray-400 hover:text-gray-500 lg:block">
+                            <span class="sr-only">Search</span>
+                            &lt;!&ndash; Heroicon name: outline/search &ndash;&gt;
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </a>
+-->
+
+                        <a v-show="accountNeedsUnlock" @click="showTermsOrUnlockWallet()" href="#" class="p-2 text-blue-600 hover:text-blue-500 lg:ml-4">
+                            Allow Wallet Access
+                        </a>
+                        <a v-show="state.account" href="#" class="p-2 text-blue-600 hover:text-blue-500 lg:ml-4">
+                            {{shortAddress}}
+                        </a>
+                        <a v-show="state.account && state.accountHasBalance" @click="showWithdrawAccountBalanceDialog()" href="#" class="text-blue-600 hover:text-blue-500 lg:ml-4" data-cy="btn-withdraw-balance">
+                            (Withdraw <value-display :amount-wei="state.accountBalanceInWei" :short="true" :hide-usd="true"></value-display>)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto sm:py-16 sm:px-6 lg:px-8">
+        <div class="max-w-2xl mx-auto lg:max-w-none">
+            <div v-show="accountNeedsUnlock" id="unlock_wallet" class="md:-mt-8 mb-8 bg-yellow-200 shadow sm:rounded-lg" v-cloak>
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-xl leading-6 font-medium text-gray-900">
+                        Allow Access to your Wallet
+                    </h3>
+                    <div class="mt-2 max-w-xl text-sm text-gray-800">
+                        <p>
+                            In order to use this page you must allow access to your wallet.
+                        </p>
+                    </div>
+                    <div class="mt-5">
+                        <button @click="showTermsOrUnlockWallet()" type="button" class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
+                            Allow Access
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+                <div class="flex flex-col-reverse">
+                    <div class="w-full aspect-w-1 aspect-h-1">
+                        <!-- Tab panel, show/hide based on tab state. -->
+                        <div id="tabs-2-panel-1" aria-labelledby="tabs-2-tab-1" role="tabpanel" tabindex="0">
+                            <img :src=punkImageUrl alt="Image of Cryptopunk" class="w-full h-full object-center object-cover sm:rounded-lg img-scale-pixelated bg-punk-default">
+                        </div>
+
+                        <!-- More images... -->
+                    </div>
+                </div>
+
+                <div class="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
+                    <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">Cryptopunk #{{ punkIndex }}</h1>
+<!--                    <h2 id="information-heading" class="sr-only">Information</h2>-->
+<!--                    <p class="text-sm text-gray-500 mt-2">Male, 3 Attributes</p>-->
+                    <div class="mt-3">
+                        <h2 class="sr-only">Product information</h2>
+<!--                        <p class="text-xl text-gray-900">Male, 4 Attributes</p>-->
+                        <p class="text-xl text-gray-900" data-cy="owned-by">Owned by <account-link :account="state.punkData.owner"></account-link></p>
+                    </div>
+
+                    <!-- Market Status -->
+                    <section aria-labelledby="policies-heading" class="mt-5">
+<!--                        <h2 id="related-products-heading" class="text-xl font-bold tracking-tight text-gray-900">Market Status</h2>-->
+                        <h2 id="policies-heading" class="sr-only">Current Market Status</h2>
+
+                        <dl class="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                                <dt>
+                                    <span class="mb-4 mx-auto h-10 w-10 rounded-full bg-red-100 flex items-center justify-center ring-4 ring-white">
+                                        <svg class="h-5 w-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                        </svg>
+                                    </span>
+                                    <span class="mt-4 text-sm font-medium text-gray-900">
+                                        <span v-show="isPunkForSaleToAnyone" data-cy="span-offered-anyone" v-cloak>Offered for Sale by Owner</span>
+                                        <span v-show="isPunkForSaleToSpecificAddress" data-cy="span-offered-to-specific" v-cloak>Offered for sale to <account-link :account="state.punkData.onlySellTo"></account-link></span>
+                                        <span v-show="isPunkNotForSale" v-cloak>Not Currently Listed for Sale</span>
+                                    </span>
+                                </dt>
+                                <dd class="mt-1 text-xl text-gray-900 font-semibold">
+                                    <span v-show="isPunkForSaleToAnyone || isPunkForSaleToSpecificAddress" v-cloak><value-display :amount-wei="state.punkData.offerValue" :short="true" data-cy="span-offered-price"></value-display></span>
+                                    <span v-show="isPunkNotForSale" v-cloak></span>
+                                </dd>
+                                <div v-show="shouldShowBuyButton" class="mt-5 flex sm:flex-col1">
+                                    <button @click="showBuyDialog()" :disabled="!accountIsUnlocked" type="submit" class="flex-1 bg-blue-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500 sm:w-full disabled:opacity-50" data-cy="btn-buy">Buy</button>
+                                </div>
+                                <div v-show="shouldShowRemoveFromSaleButton" class="mt-5 flex sm:flex-col1">
+                                    <button @click="showRemoveFromSaleDialog()" type="submit" :disabled="!accountIsUnlocked" class="flex-1 bg-blue-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500 sm:w-full disabled:opacity-50" data-cy="btn-remove-from-sale">Remove from Sale</button>
+                                </div>
+                                <div v-show="shouldShowOfferForSaleButton" class="mt-5 flex sm:flex-col1">
+                                    <button @click="showOfferForSaleDialog()" type="submit" :disabled="!accountIsUnlocked" class="flex-1 bg-blue-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500 sm:w-full disabled:opacity-50" data-cy="btn-offer-for-sale">Offer for Sale</button>
+                                </div>
+                                <div v-show="shouldShowTransferButton" class="mt-5 flex sm:flex-col1">
+                                    <button @click="showTransferDialog()" type="submit" :disabled="!accountIsUnlocked" class="flex-1 bg-blue-100 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500 sm:w-full disabled:opacity-50" data-cy="btn-transfer">Transfer</button>
+                                </div>
+
+                            </div>
+
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                                <dt>
+                                    <span class="mb-4 mx-auto h-10 w-10 rounded-full bg-green-100 flex items-center justify-center ring-4 ring-white">
+                                        <svg class="h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+                                        </svg>
+                                    </span>
+                                    <span class="mt-4 text-sm font-medium text-gray-900">
+                                        <span v-if="doesPunkHaveBid" v-cloak data-cy="span-bid-account">Bid placed by <account-link :account="state.punkData.bidder"></account-link></span>
+                                        <span v-else v-cloak>No Current Bids</span>
+                                    </span>
+                                </dt>
+                                <dd class="mt-1 text-xl text-gray-900 font-semibold">
+                                    <span v-if="doesPunkHaveBid" v-cloak data-cy="span-bid-value"><value-display :amount-wei="state.punkData.bidValue" :short="true"></value-display></span>
+                                    <span v-else v-cloak></span>
+                                </dd>
+
+                                <div v-show="shouldShowAcceptBidButton" class="mt-5 flex sm:flex-col1">
+                                    <button @click="showAcceptBidDialog()" type="submit" :disabled="!accountIsUnlocked" class="flex-1 bg-blue-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500 sm:w-full disabled:opacity-50" data-cy="btn-accept-bid">Accept Bid</button>
+                                </div>
+                                <div v-show="shouldShowBidButton" class="mt-5 flex sm:flex-col1">
+                                    <button @click="showBidDialog()" :disabled="!accountIsUnlocked" type="submit" class="flex-1 bg-blue-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500 sm:w-full disabled:opacity-50" data-cy="btn-bid">Bid</button>
+                                </div>
+                                <div v-show="shouldShowWithdrawBidButton" class="mt-5 flex sm:flex-col1">
+                                    <button @click="showWithdrawBidDialog()" type="submit" :disabled="!accountIsUnlocked" class="flex-1 bg-blue-100 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-blue-700 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500 sm:w-full disabled:opacity-50" data-cy="btn-withdraw-bid">Withdraw Bid</button>
+                                </div>
+                            </div>
+                        </dl>
+                    </section>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer aria-labelledby="footer-heading" class="bg-white">
+        <h2 id="footer-heading" class="sr-only">Footer</h2>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="border-t border-gray-200 py-20">
+                <div class="grid grid-cols-1 md:grid-cols-12 md:grid-flow-col md:gap-x-8 md:gap-y-16 md:auto-rows-min">
+                    <a href="https://cryptopunks.market" class="flex">
+                        <span class="sr-only">Cryptopunks Market</span>
+                        <h1 class="text-xl font-extrabold tracking-tight text-gray-900">Cryptopunks Market<sup class="text-sm text-gray-500"> beta</sup></h1>
+                    </a>
+
+                    <!-- Sitemap sections -->
+                    <div class="mt-10 col-span-6 grid grid-cols-2 gap-8 sm:grid-cols-3 md:mt-0 md:row-start-1 md:col-start-4 md:col-span-8 lg:col-start-3 lg:col-span-6">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">
+                                About
+                            </h3>
+                            <ul role="list" class="mt-6 space-y-6">
+                                <li class="text-sm">
+                                    <a href="https://larvalabs.com/cryptopunks" class="text-gray-500 hover:text-gray-600">
+                                        Product Page
+                                    </a>
+                                </li>
+
+                                <li class="text-sm">
+                                    <a href="https://en.wikipedia.org/wiki/CryptoPunks" class="text-gray-500 hover:text-gray-600">
+                                        Wikipedia
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">
+                                The Market
+                            </h3>
+                            <ul role="list" class="mt-6 space-y-6">
+                                <li class="text-sm">
+                                    <a href="https://github.com/larvalabs/cryptopunksmarket" class="text-gray-500 hover:text-gray-600">
+                                        Source Code
+                                    </a>
+                                </li>
+
+                                <li class="text-sm">
+                                    <a href="https://github.com/larvalabs/cryptopunksmarket/issues" class="text-gray-500 hover:text-gray-600">
+                                        Report a Bug
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">
+                                Help
+                            </h3>
+                            <ul role="list" class="mt-6 space-y-6">
+                                <li class="text-sm">
+                                    <a href="#" class="text-gray-500 hover:text-gray-600">
+                                        Ethereum Basics
+                                    </a>
+                                </li>
+
+                                <li class="text-sm">
+                                    <a href="#" class="text-gray-500 hover:text-gray-600">
+                                        How to Perform Cryptopunk Transactions
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 py-10 text-center">
+                <p class="text-sm text-gray-500">&copy; 2021 Cryptopunks Market, All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        variants: {
+            extend: {
+                opacity: ['disabled'],
+                backgroundColor: ['disabled'],
+                borderColor: ['disabled'],
+                cursor: ['disabled']
+            }
+        }
+    }
+
+    if (window.Cypress) {
+        console.log("Setting up Cypress specific error handler to force Vue to throw exceptions.")
+        // Expose Vue errors to Cypress as uncaught exceptions
+        Vue.config.errorHandler = function(err/*, vm, info*/) {
+            setTimeout(() => {throw err})
+        }
+    }
+</script>
+</body>
+</html>
